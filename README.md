@@ -135,6 +135,49 @@ By automating and structuring the Master Cross using SQL, I enabled my company t
 
 This Master Cross now functions as a **core component of our catalog logic**, linking each internal TSPARTID to a complete set of competitor and OEM numbers used across the industry.
 
+--- 
+
+## Buyers Guide Construction & Cross Integration
+
+To build a complete and distributable aftermarket catalog, I designed a two-stage process:
+
+### Step 1: Build the Buyers Guide from Application Fitment Data
+
+The Buyers Guide is constructed by transforming raw ACES-style application data into a structured format that maps each **vehicle configuration** to a specific **internal part number (TSPARTID)**.
+
+This process includes:
+
+-  Filtering out incomplete or deprecated entries
+-  Grouping applications by year range, submodel, and body type
+-  Ensuring 1-to-1 or 1-to-many relationships between part numbers and fitments
+-  Formatting the output to match industry-exchange standards
+
+This results in a **vehicle application table** with part IDs, ready to be enhanced with cross-references.
+
+### 🔄 Step 2: Unpivot and Normalize the Master Cross Data
+
+The original cross-reference table contained over 50 columns of competitor and OEM brands in a wide format. To make it usable:
+
+- I **unpivoted the table** using SQL to convert all brand columns into rows
+- Removed null, duplicate, and placeholder values
+- Mapped each cross-reference to its corresponding `TSPARTID`
+- Classified the source type (OEM, aftermarket, conditional, etc.)
+
+This generated a **flat, normalized CrossMaster** table for easy joins and exports.
+
+
+### 🔗 Step 3: Combine Buyers Guide with Master Cross
+
+The final step is to **enrich the Buyers Guide** by joining it with the normalized CrossMaster using `TSPARTID` as the key.
+
+This produces a catalog where each vehicle-part application is associated with:
+
+- The internal part number (`TSPARTID`)
+- All known OEM and aftermarket equivalent numbers
+- Any opposite-side or regional variations
+
+This structure supports **both internal lookup** and **external sharing** with customers, resellers, and catalog distributors.
+
 
 
 
