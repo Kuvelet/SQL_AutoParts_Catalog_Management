@@ -29,21 +29,31 @@ The solution is fully database-native, requiring no external tools or languages 
 
 The foundational dataset for this project leverages the **ACES and PIES data standards**, the industry-leading formats established by the Automotive Aftermarket Industry Association (AAIA). These standardized formats are universally used across the automotive sector to reliably exchange vehicle and part fitment data.
 
-**Sample ACES/PIES Data (1995 GMC C3500 Example):**
+**Sample ACES/PIES Data (1991 Nissan Pathfinder Example):**
 
 | RegionID | Make | Model | Year | SubModel | VehicleType | FuelTypeName | DriveTypeName | TransmissionControlTypeName | BodyType | BodyNumDoors | BaseVehicleID | AspirationName | EngineBaseID | Liter | CC | CID | Cylinders | BlockType | SteeringSystemName | SteeringTypeName | VehicleID | BodyTypeID | BodyNumDoorsID | DriveTypeID | BrakeABSName | CylinderHeadTypeName |
 |----------|------|-------|------|----------|-------------|--------------|---------------|-----------------------------|----------|--------------|---------------|----------------|--------------|-------|----|-----|-----------|-----------|--------------------|------------------|-----------|------------|----------------|-------------|--------------|----------------------|
-| 1 | GMC | C3500 | 1995 | Sierra SL | Truck | DIESEL | RWD | Automatic | Standard Cab Pickup | 2 | 3884 | Turbocharged | 357 | 6.5 | - | 395 | 8 | V | Power | Gear | 8226 | 17 | 7 | 7 | 2-Wheel ABS | OHV |
+| 1 | Nissan | Pathfinder | 1991 | SE | Truck | GAS | 4WD | Automatic | Sport Utility | 4 | 12345 | Naturally Aspirated | 678 | 3.0 | 2960 | 181 | 6 | V | Power | Rack & Pinion | 54321 | 5 | 4 | 4 | 4-Wheel ABS | SOHC |
 
 Building upon the ACES/PIES structure, I've integrated our company's specific part number information to generate our comprehensive raw catalog dataset. This augmented dataset is the cornerstone for the final catalog generation.
 
-**Example of Our Augmented Raw Catalog Data (1995 GMC C3500 Example):**
+**Example of Our Augmented Raw Catalog Data (1991 Nissan Pathfinder Example):**
 
-| MAKE | MODEL | BodyType | Year | SUBMODEL | VehicleType | BodyNumDoors | MfrBodyCode | YrMax | COMMENTS | DETAILS | AAIAPARTTERMINOLOGY | AAIAPOSITION | QUANTITY | TSPARTID | TSPARTIDLR | MEXICO | Liter | Cylinders | AspirationName | FuelTypeName | DriveTypeName | Submodel_RockAUto | CanK | Opposite_Side_PARTID |
+| MAKE | MODEL | BodyType | Year | SUBMODEL | VehicleType | BodyNumDoors | MfrBodyCode | YrMax | COMMENTS | DETAILS | AAIAPARTTERMINOLOGY | AAIAPOSITION | QUANTITY | TSPARTID | TSPARTIDLR | MEXICO | Liter | Cylinders | AspirationName | FuelTypeName | DriveTypeName | Submodel_RockAuto | CanK | Opposite_Side_PARTID |
 |------|-------|----------|------|----------|-------------|--------------|-------------|-------|----------|---------|--------------------|--------------|----------|----------|------------|--------|-------|-----------|----------------|--------------|---------------|-------------------|------|----------------------|
-| GMC | C3500 | Standard Cab Pickup | 1995 | Sierra SL | Truck | 2 | NULL | 1995 | NULL | NULL | Trunk Lid Lift Support | NULL | 2 | 612689 | 612689 | NULL | 6.5 | 8 | Turbocharged | DIESEL | RWD | Sierra SL | NULL | NULL |
+| Nissan | Pathfinder | Sport Utility | 1991 | SE | Truck | 4 | NULL | 1991 | NULL | NULL | Liftgate Lift Support | NULL | 2 | 611321 | 611321 | YES | 3.0 | 6 | Naturally Aspirated | GAS | 4WD | SE | YES | NULL |
+| Nissan | Pathfinder | Sport Utility | 1991 | SE | Truck | 4 | NULL | 1991 | NULL | NULL | Back Glass Lift Support | Left | 1 | 612921 | 612921 | YES | 3.0 | 6 | Naturally Aspirated | GAS | 4WD | SE | YES | 612917 |
+| Nissan | Pathfinder | Sport Utility | 1991 | SE | Truck | 4 | NULL | 1991 | NULL | NULL | Back Glass Lift Support | Right | 1 | 612917 | 612917 | YES | 3.0 | 6 | Naturally Aspirated | GAS | 4WD | SE | YES | 612921 |
 
 This enhanced dataset serves as the foundation for clearly defining vehicle fitment, facilitating accurate catalog structuring and detailed buyer guide generation.
+
+[📥 Download this section as Markdown (.md) file](dataset_description.md)
+
+---
+
+**Next Step:** Let's move forward and detail the raw Master Cross-reference data.
+
+
 
 
 
