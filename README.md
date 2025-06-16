@@ -27,7 +27,7 @@ The solution is fully database-native, requiring no external tools or languages 
 
 ## Dataset Description
 
-###  In-Depth Breakdown of Dataset Components
+###  ACES/PIES Data Overview
 
 The dataset for this project consists of two distinct yet interconnected components: the foundational **AAIA ACES/PIES** data, and company-specific catalog data. Each serves a unique purpose in creating a comprehensive automotive parts catalog.
 
@@ -50,7 +50,7 @@ This data ensures industry-wide consistency and compatibility, forming the base 
 
 ---
 
-#### 🔸 2. Company-Specific Catalog Data (Internally Generated)
+####  2. Company-Specific Catalog Data (Internally Generated)
 
 On top of the ACES/PIES structure, I’ve augmented the dataset with company-specific part information tailored for our internal catalog system. This includes:
 
@@ -67,7 +67,7 @@ These fields provide the detailed part-level resolution needed to drive accurate
 
 ---
 
-#### 🎯 Why Combine AAIA and Company Data?
+####  Why Combine AAIA and Company Data?
 
 Merging these two data sources enables a powerful, dual-purpose catalog system:
 
@@ -104,6 +104,45 @@ Building upon the ACES/PIES structure, I've integrated our company's specific pa
 
 This enhanced dataset forms the backbone of the system—supporting precise vehicle fitment logic, structured catalog assembly, and rich Buyers Guide generation.
 
+###  MasterCross Data Overview
+
+In the automotive parts industry—especially for manufacturers and wholesalers—**accurate part identification** is critical. With a wide array of vehicle makes, models, and submodels (often varying by region), ensuring correct part-to-vehicle matching is essential for both operational efficiency and customer satisfaction.
+
+OEM (Original Equipment Manufacturer) numbers serve as the industry’s primary standard for part identification. However, in the aftermarket world, customers often request quotes using **OEM references** or **aftermarket competitor part numbers**. To respond effectively, sellers must maintain a detailed, organized system of cross-references that map each internal part to all available equivalent numbers across the market.
+
+This comprehensive cross-referencing dataset—often referred to as the **Master Cross**—enables:
+
+-  Accurate customer quoting  
+-  Faster catalog lookup and matching  
+-  Seamless integration with third-party buyer systems  
+-  Greater catalog integrity and internal data consistency
+
+####  Original Challenge
+
+Prior to this project, the Master Cross was managed **manually** in Microsoft Access. Each new part or cross-reference was entered by hand—resulting in inefficiencies, inconsistencies, and missed opportunities to automate key catalog processes.
+
+To modernize this workflow, I first **unpivoted and normalized** the manually compiled table to extract only the relevant cross-reference information. This laid the foundation for building a clean, scalable structure where each part's crosses—OEM and aftermarket—could be properly grouped, analyzed, and exported.
+
+
+####  Sample Master Cross Dataset (Condensed Example)
+
+| Make  | OEM #        | OEM Cond #   | TSPARTID | TSPARTIDLR | Monroe # | Stabilus # | AC Delco # | Bugiad # | Liftgate # | Meyle # | FCS #   | Delphi # | LesjCond # | Notes |
+|-------|--------------|--------------|----------|------------|----------|------------|------------|----------|-------------|---------|---------|-----------|-------------|-------|
+| TOYOTA | 53450-A9030 | 53450A9030   | 613593   | 613593     | 901393   | 461510     | 4326       | LS10116  | SG329011    | 013610  | 84326   | DMA       |             |       |
+| TOYOTA | 53450-69045 | 5345069045   | 613593   | 613593     | 901393   | 461510     | 4326       | LS10116  | SG329011    | 013610  | 84326   | DMA       |             |       |
+| TOYOTA | 53440-YC040 | 53440YC040   | 613593   | 613593     | 901393   | 461510     | 4326       | LS10116  | SG329011    | 013610  | 84326   | DMA       |             |       |
+| TOYOTA | 53440-YC020 | 53440YC020   | 613593   | 613593     | 901393   | 461510     | 4326       | LS10116  | SG129032    | 013610  | 84326   | DMA       |             |       |
+
+>  *Note: This table has been simplified and pseudonymized to demonstrate the schema and logic only. The original dataset contains tens of thousands of crosses and brand mappings across over 15,000+ unique SKUs.*
+
+
+By automating and structuring the Master Cross using SQL, I enabled my company to:
+
+-  Eliminate repetitive manual entry  
+-  Support scalable cross-reference expansion  
+-  Export unified catalogs for clients, quotes, and internal systems
+
+This Master Cross now functions as a **core component of our catalog logic**, linking each internal TSPARTID to a complete set of competitor and OEM numbers used across the industry.
 
 
 
