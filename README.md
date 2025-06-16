@@ -1,2 +1,10 @@
 # SQL_AutoParts_Catalog_Management
-A robust, SQL-driven system for building an automotive parts catalog from raw application data. This project reconstructs industry-standard Buyers Guides by applying data normalization, vehicle fitment logic, cross-referencing, and catalog structuring techniques aligned with ACES (Aftermarket Catalog Exchange Standard) principles.
+
+## Project Overview
+This project delivers a complete, SQL-based aftermarket auto parts catalog designed for both internal operations and customer distribution. Built to align with industry standards such as the ACES and PIES data formats, it transforms raw vehicle fitment and part data into two essential outputs:
+
+- A structured Buyers Guide for vehicle-part applications
+
+- A comprehensive CrossMaster, which consolidates OEM and aftermarket competitor part numbers
+
+The system was developed to modernize and streamline our company’s catalog infrastructure—replacing manual processes with an autonomous, scalable solution. It supports continuous updates by integrating raw input tables from R&D, enabling efficient tracking of new part introductions, vehicle fitments, and cross-references.
