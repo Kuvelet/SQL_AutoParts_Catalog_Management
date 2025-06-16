@@ -47,11 +47,6 @@ Building upon the ACES/PIES structure, I've integrated our company's specific pa
 
 This enhanced dataset serves as the foundation for clearly defining vehicle fitment, facilitating accurate catalog structuring and detailed buyer guide generation.
 
-[📥 Download this section as Markdown (.md) file](dataset_description.md)
-
----
-
-**Next Step:** Let's move forward and detail the raw Master Cross-reference data.
 
 
 
