@@ -31,8 +31,6 @@ The solution is fully database-native, requiring no external tools or languages 
 
 The dataset for this project consists of two distinct yet interconnected components: the foundational **AAIA ACES/PIES** data, and company-specific catalog data. Each serves a unique purpose in creating a comprehensive automotive parts catalog.
 
----
-
 #### 🔹 1. AAIA ACES/PIES Data (Industry Standard)
 
 The Automotive Aftermarket Industry Association (**AAIA**) provides standardized vehicle fitment and application data using the **ACES (Aftermarket Catalog Exchange Standard)** and **PIES (Product Information Exchange Standard)** frameworks. This foundational dataset includes:
@@ -47,8 +45,6 @@ The Automotive Aftermarket Industry Association (**AAIA**) provides standardized
   `TransmissionControlTypeName`, `SteeringSystemName`, `BrakeABSName`, `CylinderHeadTypeName`
 
 This data ensures industry-wide consistency and compatibility, forming the base upon which the catalog is structured.
-
----
 
 ####  2. Company-Specific Catalog Data (Internally Generated)
 
@@ -65,8 +61,6 @@ On top of the ACES/PIES structure, I’ve augmented the dataset with company-spe
 
 These fields provide the detailed part-level resolution needed to drive accurate Buyers Guide generation and SKU-to-vehicle mapping.
 
----
-
 ####  Why Combine AAIA and Company Data?
 
 Merging these two data sources enables a powerful, dual-purpose catalog system:
@@ -78,9 +72,6 @@ Merging these two data sources enables a powerful, dual-purpose catalog system:
   Enhances internal accuracy in product mapping, inventory alignment, and vehicle fitment validation.
 
 This hybrid dataset design lays the foundation for a scalable, autonomous, and high-integrity catalog system purpose-built for real-world use.
-
----
-
 
 **Sample ACES/PIES Data (1991 Nissan Pathfinder Example):**
 
