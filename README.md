@@ -89,6 +89,7 @@ This hybrid dataset design lays the foundation for a scalable, autonomous, and h
 | 1 | Nissan | Pathfinder | 1991 | SE | Truck | GAS | 4WD | Automatic | Sport Utility | 4 | 12345 | Naturally Aspirated | 678 | 3.0 | 2960 | 181 | 6 | V | Power | Rack & Pinion | 54321 | 5 | 4 | 4 | 4-Wheel ABS | SOHC |
 
 > The sample data has been anonymized and simplified for demonstration purposes only.
+
 Building upon the ACES/PIES structure, I've integrated our company's specific part number information to generate our comprehensive raw catalog dataset. This augmented dataset is the cornerstone for the final catalog generation.
 
 **Example of Our Augmented Raw Catalog Data (1991 Nissan Pathfinder Example):**
@@ -100,6 +101,7 @@ Building upon the ACES/PIES structure, I've integrated our company's specific pa
 | Nissan | Pathfinder | Sport Utility | 1991 | SE | Truck | 4 | NULL | 1991 | NULL | NULL | Back Glass Lift Support | Right | 1 | 612917 | 612917 | YES | 3.0 | 6 | Naturally Aspirated | GAS | 4WD | SE | YES | 612921 |
 
 > The sample data has been anonymized and simplified for demonstration purposes only.
+
 This enhanced dataset forms the backbone of the system—supporting precise vehicle fitment logic, structured catalog assembly, and rich Buyers Guide generation.
 
 
