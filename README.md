@@ -143,20 +143,8 @@ To build a complete and distributable aftermarket catalog, I designed a two-stag
 
 ### Step 1: Build the Buyers Guide from Application Fitment Data
 
-The Buyers Guide is constructed by transforming raw ACES-style application data into a structured format that maps each **vehicle configuration** to a specific **internal part number (TSPARTID)**.
-
-This process includes:
-
--  Filtering out incomplete or deprecated entries
--  Grouping applications by year range, submodel, and body type
--  Ensuring 1-to-1 or 1-to-many relationships between part numbers and fitments
--  Formatting the output to match industry-exchange standards
-
-This results in a **vehicle application table** with part IDs, ready to be enhanced with cross-references.
-
-**Script**
-
 ```sql
+CREATE VIEW vw_TUF_BuyersGuide_All_woCross AS
 WITH UniqueTSPARTID AS (
     SELECT DISTINCT
         TSPARTID
@@ -350,106 +338,65 @@ LEFT JOIN AggregatedTerminology
     ON UniqueTSPARTID.TSPARTID = AggregatedTerminology.TSPARTID
 ```
 
-This SQL script builds a summarized application table for each unique `TSPARTID` (part number). It combines:
 
-- Vehicle fitment information (make, model, year ranges)
-- Body type formatting
-- Position, quantity, and part terminology (based on AAIA standards)
-- Comments and details
-- A final SELECT that outputs a human-readable, enriched catalog row per part
+#### 🏗 Buyers Guide View: `vw_TUF_BuyersGuide_All_woCross`
 
----
-
-### 🔹 1. `UniqueTSPARTID`
-Gets all distinct part numbers from the source table `TUF_CATALOG_AAIA`. Serves as the anchor for joining later data.
-
----
-
-### 🔹 2. `ApplicationInfo`
-Builds a vehicle fitment string for each part:
-
-- If the part is labeled `UNIVERSAL`, returns 'Universal'.
-- Otherwise, constructs grouped strings like:
-  
-  `Nissan: Pathfinder (1991–1992); Altima (1995–1998) / Toyota: Camry (2001–2004)`
-
-This involves nested aggregation:
-- First by `MAKE`, `MODEL`, `Year`
-- Then grouped into brand-level fitment strings
-- Then collapsed per part
-
----
-
-### 🔹 3. `AggregatedBodyType`
-Summarizes body configurations like:
-
-`2 Door Coupe (1995–2001), 4 Door Sedan (2002–2004)`
-
-- If only one year range: just show `2 Door Coupe`
-- If multiple ranges per body type: add `(Year–Year)` for clarity
-
----
-
-### 🔹 4. `AggregatedNotes`
-Combines:
-- Manufacturer body codes (`MfrBodyCode`)
-- Comments (`COMMENTS`)
-- Details (`DETAILS`)
-
-Example output:
-
-`ABC123 || Fits limited edition only || Reinforced bracket design`
-
-Uses `STRING_AGG` and `TRIM` to format cleanly.
-
----
-
-### 🔹 5. `AggregatedTerminology`
-Aggregates key AAIA-style catalog fields per part:
-- `PartTerminology` (e.g., Lift Support)
-- `Position` (e.g., Left, Right)
-- `QuantityNeeded` (e.g., 1, 2)
-
-Uses nested `DISTINCT` and `STRING_AGG` for clean deduplication.
-
----
-
-### 🧾 Final SELECT
-
-Returns a unified view with:
-- `TSPARTID`
-- `Application` string
-- Min and max fitment years
-- Body type string
-- Position, terminology, and quantity
-- Combined comments + codes + details in `Notes`
-
-This final output is the basis of the Buyers Guide table or export.
-
-### 🔄 Step 2: Unpivot and Normalize the Master Cross Data
-
-The original cross-reference table contained over 50 columns of competitor and OEM brands in a wide format. To make it usable:
-
-- I **unpivoted the table** using SQL to convert all brand columns into rows
-- Removed null, duplicate, and placeholder values
-- Mapped each cross-reference to its corresponding `TSPARTID`
-- Classified the source type (OEM, aftermarket, conditional, etc.)
-
-This generated a **flat, normalized CrossMaster** table for easy joins and exports.
+This SQL script defines a view that assembles a **comprehensive Buyers Guide** table for your catalog. Each row summarizes the full application, terminology, and essential notes for a unique part number (`TSPARTID`), drawing from your ACES-style raw fitment data.
 
 
-### 🔗 Step 3: Combine Buyers Guide with Master Cross
+ **What This View Does**
 
-The final step is to **enrich the Buyers Guide** by joining it with the normalized CrossMaster using `TSPARTID` as the key.
+- **Gathers all part numbers** from the catalog
+- **Aggregates all fitment applications** (make, model, year, etc.)
+- **Summarizes body types and configurations**
+- **Combines relevant notes, comments, and codes**
+- **Lists AAIA part terminology, position, and quantity**
 
-This produces a catalog where each vehicle-part application is associated with:
+The result:  
+A single, well-structured table providing every key Buyers Guide detail needed for internal analysis, catalog exports, or sharing with partners—**before joining to any cross-reference data**.
 
-- The internal part number (`TSPARTID`)
-- All known OEM and aftermarket equivalent numbers
-- Any opposite-side or regional variations
+**Step-by-Step Explanation**
 
-This structure supports **both internal lookup** and **external sharing** with customers, resellers, and catalog distributors.
+##### 1. `UniqueTSPARTID`
+- Pulls every unique part number in the catalog.
 
+##### 2. `ApplicationInfo`
+- For each part, aggregates all fitment applications into a readable string like:  
+  `Nissan: Pathfinder (1991–1995); Altima (1996–1998) / Toyota: Camry (2000–2002)`
+- Handles “Universal” fitments as a special case.
+
+##### 3. `AggregatedBodyType`
+- Summarizes all body types (e.g., “4 Door SUV (1991–1995)”).
+- Adds year ranges for body types that change over time.
+
+##### 4. `AggregatedNotes`
+- Combines manufacturer body codes, comments, and details.
+- Only non-empty values are concatenated, separated by `||`.
+
+##### 5. `AggregatedTerminology`
+- Lists AAIA part terminology (e.g., “Lift Support”), position (“Left; Right”), and quantity needed.
+
+##### **Final SELECT**
+
+- Joins all the above CTEs using `TSPARTID` as the key.
+- Each row = one part, with full application and descriptive metadata.
+- This view is ready for downstream joins (e.g., to your Master Cross table) or as a Buyers Guide export.
+
+**Sample Output Columns**
+
+| Column           | Description                                             |
+|------------------|---------------------------------------------------------|
+| TSPARTID         | Internal catalog part number                            |
+| Application      | Complete fitment string (Make, Model, Year)             |
+| MinYear/MaxYear  | Earliest and latest fitment years                       |
+| BodyType         | Detailed body/door summary with years if needed         |
+| PartTerminology  | AAIA standard terminology (e.g., Lift Support)          |
+| Position         | Position information (e.g., Left, Right)                |
+| Notes            | Combined notes, codes, comments                         |
+| QuantityNeeded   | Quantity required per vehicle                           |
+
+**Summary:**  
+This view delivers a ready-to-use, highly readable Buyers Guide output for each part, optimized for further enrichment with cross-reference data.
 
 
 
