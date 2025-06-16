@@ -27,7 +27,60 @@ The solution is fully database-native, requiring no external tools or languages 
 
 ## Dataset Description
 
-The foundational dataset for this project leverages the **ACES and PIES data standards**, the industry-leading formats established by the Automotive Aftermarket Industry Association (AAIA). These standardized formats are universally used across the automotive sector to reliably exchange vehicle and part fitment data.
+###  In-Depth Breakdown of Dataset Components
+
+The dataset for this project consists of two distinct yet interconnected components: the foundational **AAIA ACES/PIES** data, and company-specific catalog data. Each serves a unique purpose in creating a comprehensive automotive parts catalog.
+
+---
+
+#### 🔹 1. AAIA ACES/PIES Data (Industry Standard)
+
+The Automotive Aftermarket Industry Association (**AAIA**) provides standardized vehicle fitment and application data using the **ACES (Aftermarket Catalog Exchange Standard)** and **PIES (Product Information Exchange Standard)** frameworks. This foundational dataset includes:
+
+- **Vehicle Identification and Attributes**  
+  `Make`, `Model`, `Year`, `SubModel`, `BodyType`, `VehicleType`, `BodyNumDoors`, `DriveTypeName`, etc.
+
+- **Engine and Performance Data**  
+  `EngineBaseID`, `Liter`, `Cylinders`, `AspirationName`, `FuelTypeName`
+
+- **Technical Specifications**  
+  `TransmissionControlTypeName`, `SteeringSystemName`, `BrakeABSName`, `CylinderHeadTypeName`
+
+This data ensures industry-wide consistency and compatibility, forming the base upon which the catalog is structured.
+
+---
+
+#### 🔸 2. Company-Specific Catalog Data (Internally Generated)
+
+On top of the ACES/PIES structure, I’ve augmented the dataset with company-specific part information tailored for our internal catalog system. This includes:
+
+- **Product Identification**  
+  `TSPARTID`, `TSPARTIDLR`, `AAIAPARTTERMINOLOGY`, `AAIAPOSITION`
+
+- **Inventory and Localization**  
+  `QUANTITY`, `MEXICO`, `CanK`
+
+- **Fitment and Interchangeability Details**  
+  `Opposite_Side_PARTID`, `Submodel_RockAuto`, `COMMENTS`, `DETAILS`
+
+These fields provide the detailed part-level resolution needed to drive accurate Buyers Guide generation and SKU-to-vehicle mapping.
+
+---
+
+#### 🎯 Why Combine AAIA and Company Data?
+
+Merging these two data sources enables a powerful, dual-purpose catalog system:
+
+- **Industry Alignment**  
+  Maintains compatibility with external systems, buyers, and data-sharing partners using the AAIA standard.
+
+- **Operational Precision**  
+  Enhances internal accuracy in product mapping, inventory alignment, and vehicle fitment validation.
+
+This hybrid dataset design lays the foundation for a scalable, autonomous, and high-integrity catalog system purpose-built for real-world use.
+
+---
+
 
 **Sample ACES/PIES Data (1991 Nissan Pathfinder Example):**
 
@@ -35,6 +88,7 @@ The foundational dataset for this project leverages the **ACES and PIES data sta
 |----------|------|-------|------|----------|-------------|--------------|---------------|-----------------------------|----------|--------------|---------------|----------------|--------------|-------|----|-----|-----------|-----------|--------------------|------------------|-----------|------------|----------------|-------------|--------------|----------------------|
 | 1 | Nissan | Pathfinder | 1991 | SE | Truck | GAS | 4WD | Automatic | Sport Utility | 4 | 12345 | Naturally Aspirated | 678 | 3.0 | 2960 | 181 | 6 | V | Power | Rack & Pinion | 54321 | 5 | 4 | 4 | 4-Wheel ABS | SOHC |
 
+> The sample data has been anonymized and simplified for demonstration purposes only.
 Building upon the ACES/PIES structure, I've integrated our company's specific part number information to generate our comprehensive raw catalog dataset. This augmented dataset is the cornerstone for the final catalog generation.
 
 **Example of Our Augmented Raw Catalog Data (1991 Nissan Pathfinder Example):**
@@ -45,7 +99,8 @@ Building upon the ACES/PIES structure, I've integrated our company's specific pa
 | Nissan | Pathfinder | Sport Utility | 1991 | SE | Truck | 4 | NULL | 1991 | NULL | NULL | Back Glass Lift Support | Left | 1 | 612921 | 612921 | YES | 3.0 | 6 | Naturally Aspirated | GAS | 4WD | SE | YES | 612917 |
 | Nissan | Pathfinder | Sport Utility | 1991 | SE | Truck | 4 | NULL | 1991 | NULL | NULL | Back Glass Lift Support | Right | 1 | 612917 | 612917 | YES | 3.0 | 6 | Naturally Aspirated | GAS | 4WD | SE | YES | 612921 |
 
-This enhanced dataset serves as the foundation for clearly defining vehicle fitment, facilitating accurate catalog structuring and detailed buyer guide generation.
+> The sample data has been anonymized and simplified for demonstration purposes only.
+This enhanced dataset forms the backbone of the system—supporting precise vehicle fitment logic, structured catalog assembly, and rich Buyers Guide generation.
 
 
 
