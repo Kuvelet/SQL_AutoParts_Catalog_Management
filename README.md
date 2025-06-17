@@ -27,113 +27,70 @@ The solution is fully database-native, requiring no external tools or languages 
 
 ## Dataset Description
 
-###  ACES/PIES Data Overview
+This project’s catalog system is built on a unified dataset combining two key sources: **industry-standard AAIA ACES/PIES data** and **company-specific part data**. Together, they deliver both compatibility with external systems and the detailed resolution required for precise internal catalog management.
 
-The dataset for this project consists of two distinct yet interconnected components: the foundational **AAIA ACES/PIES** data, and company-specific catalog data. Each serves a unique purpose in creating a comprehensive automotive parts catalog.
+### Data Sources
 
-#### 🔹 1. AAIA ACES/PIES Data (Industry Standard)
+- **AAIA ACES/PIES Data (Industry Standard):**  
+  The Automotive Aftermarket Industry Association (AAIA) provides the ACES (Aftermarket Catalog Exchange Standard) and PIES (Product Information Exchange Standard) formats. These cover essential fitment attributes such as:
+    - Vehicle details: `Make`, `Model`, `Year`, `SubModel`, `BodyType`, `VehicleType`, `BodyNumDoors`, `DriveTypeName`
+    - Engine & performance: `EngineBaseID`, `Liter`, `Cylinders`, `AspirationName`, `FuelTypeName`
+    - Technical specs: `TransmissionControlTypeName`, `SteeringSystemName`, `BrakeABSName`, `CylinderHeadTypeName`
+  This ensures the catalog is consistent, widely compatible, and easy to integrate with industry partners.
 
-The Automotive Aftermarket Industry Association (**AAIA**) provides standardized vehicle fitment and application data using the **ACES (Aftermarket Catalog Exchange Standard)** and **PIES (Product Information Exchange Standard)** frameworks. This foundational dataset includes:
+- **Company-Specific Data:**  
+  To enhance the ACES/PIES foundation, additional fields are included for internal needs, such as:
+    - Product identification: `TSPARTID`, `TSPARTIDLR`, `AAIAPARTTERMINOLOGY`, `AAIAPOSITION`
+    - Inventory/localization: `QUANTITY`, `MEXICO`, `CanK`
+    - Fitment/interchangeability: `Opposite_Side_PARTID`, `Submodel_RockAuto`, `COMMENTS`, `DETAILS`
+  These fields enable fine-grained SKU-to-vehicle mapping and Buyers Guide generation.
 
-- **Vehicle Identification and Attributes**  
-  `Make`, `Model`, `Year`, `SubModel`, `BodyType`, `VehicleType`, `BodyNumDoors`, `DriveTypeName`, etc.
+**Why merge both sources?**  
+Combining AAIA and company-specific data provides both external compatibility and internal precision, enabling a scalable, autonomous, and reliable catalog system for real-world operations.
 
-- **Engine and Performance Data**  
-  `EngineBaseID`, `Liter`, `Cylinders`, `AspirationName`, `FuelTypeName`
+---
 
-- **Technical Specifications**  
-  `TransmissionControlTypeName`, `SteeringSystemName`, `BrakeABSName`, `CylinderHeadTypeName`
+#### Sample Data
 
-This data ensures industry-wide consistency and compatibility, forming the base upon which the catalog is structured.
+*ACES/PIES Example (1991 Nissan Pathfinder):*
 
-####  2. Company-Specific Catalog Data (Internally Generated)
+| RegionID | Make   | Model      | Year | SubModel | VehicleType | FuelTypeName | DriveTypeName | TransmissionControlTypeName | BodyType      | BodyNumDoors | BaseVehicleID | AspirationName      | EngineBaseID | Liter | CC   | CID  | Cylinders | BlockType | SteeringSystemName | SteeringTypeName | VehicleID | BodyTypeID | BodyNumDoorsID | DriveTypeID | BrakeABSName   | CylinderHeadTypeName |
+|----------|--------|------------|------|----------|-------------|--------------|---------------|-----------------------------|---------------|--------------|---------------|---------------------|--------------|-------|------|------|-----------|-----------|--------------------|------------------|-----------|------------|----------------|-------------|----------------|----------------------|
+| 1        | Nissan | Pathfinder | 1991 | SE       | Truck       | GAS          | 4WD           | Automatic                   | Sport Utility | 4            | 12345         | Naturally Aspirated | 678          | 3.0   | 2960 | 181  | 6         | V         | Power              | Rack & Pinion    | 54321     | 5          | 4              | 4           | 4-Wheel ABS    | SOHC                |
 
-On top of the ACES/PIES structure, I’ve augmented the dataset with company-specific part information tailored for our internal catalog system. This includes:
+*Company-Specific Example (Augmented for same vehicle):*
 
-- **Product Identification**  
-  `TSPARTID`, `TSPARTIDLR`, `AAIAPARTTERMINOLOGY`, `AAIAPOSITION`
+| MAKE   | MODEL      | BodyType      | Year | SUBMODEL | VehicleType | BodyNumDoors | MfrBodyCode | YrMax | COMMENTS | DETAILS | AAIAPARTTERMINOLOGY     | AAIAPOSITION | QUANTITY | TSPARTID | TSPARTIDLR | MEXICO | Liter | Cylinders | AspirationName      | FuelTypeName | DriveTypeName | Submodel_RockAuto | CanK | Opposite_Side_PARTID |
+|--------|------------|---------------|------|----------|-------------|--------------|-------------|-------|----------|---------|------------------------|--------------|----------|----------|------------|--------|-------|-----------|---------------------|--------------|---------------|-------------------|------|----------------------|
+| Nissan | Pathfinder | Sport Utility | 1991 | SE       | Truck       | 4            | NULL        | 1991  | NULL     | NULL    | Liftgate Lift Support  | NULL         | 2        | 611321   | 611321     | YES    | 3.0   | 6         | Naturally Aspirated | GAS          | 4WD           | SE                | YES  | NULL                 |
+| Nissan | Pathfinder | Sport Utility | 1991 | SE       | Truck       | 4            | NULL        | 1991  | NULL     | NULL    | Back Glass Lift Support| Left         | 1        | 612921   | 612921     | YES    | 3.0   | 6         | Naturally Aspirated | GAS          | 4WD           | SE                | YES  | 612917               |
+| Nissan | Pathfinder | Sport Utility | 1991 | SE       | Truck       | 4            | NULL        | 1991  | NULL     | NULL    | Back Glass Lift Support| Right        | 1        | 612917   | 612917     | YES    | 3.0   | 6         | Naturally Aspirated | GAS          | 4WD           | SE                | YES  | 612921               |
 
-- **Inventory and Localization**  
-  `QUANTITY`, `MEXICO`, `CanK`
+*All sample data is anonymized for demonstration.*
 
-- **Fitment and Interchangeability Details**  
-  `Opposite_Side_PARTID`, `Submodel_RockAuto`, `COMMENTS`, `DETAILS`
+---
 
-These fields provide the detailed part-level resolution needed to drive accurate Buyers Guide generation and SKU-to-vehicle mapping.
+### Master Cross Reference Data
 
-####  Why Combine AAIA and Company Data?
+To enable accurate quoting and rapid lookups, the catalog also includes a **comprehensive cross-reference (“Master Cross”)** table mapping each internal part number (TSPARTID) to all related OEM and aftermarket competitor numbers. This used to be maintained manually and was prone to errors and inefficiency.
 
-Merging these two data sources enables a powerful, dual-purpose catalog system:
+**Automating and normalizing this data with SQL provides:**
+- Accurate customer quoting
+- Faster catalog lookup and integration
+- Scalability as more crosses and brands are added
+- Reliable, unified exports for clients and partners
 
-- **Industry Alignment**  
-  Maintains compatibility with external systems, buyers, and data-sharing partners using the AAIA standard.
+*Condensed Master Cross Sample:*
 
-- **Operational Precision**  
-  Enhances internal accuracy in product mapping, inventory alignment, and vehicle fitment validation.
+| Make   | OEM #        | OEM Cond #   | TSPARTID | Monroe # | Stabilus # | AC Delco # | Bugiad # | Meyle # | FCS # | Notes |
+|--------|--------------|--------------|----------|----------|------------|------------|----------|---------|-------|-------|
+| TOYOTA | 53450-A9030  | 53450A9030   | 613593   | 901393   | 461510     | 4326       | LS10116  | 013610  | 84326 |       |
+| TOYOTA | 53450-69045  | 5345069045   | 613593   | 901393   | 461510     | 4326       | LS10116  | 013610  | 84326 |       |
 
-This hybrid dataset design lays the foundation for a scalable, autonomous, and high-integrity catalog system purpose-built for real-world use.
+---
 
-**Sample ACES/PIES Data (1991 Nissan Pathfinder Example):**
-
-| RegionID | Make | Model | Year | SubModel | VehicleType | FuelTypeName | DriveTypeName | TransmissionControlTypeName | BodyType | BodyNumDoors | BaseVehicleID | AspirationName | EngineBaseID | Liter | CC | CID | Cylinders | BlockType | SteeringSystemName | SteeringTypeName | VehicleID | BodyTypeID | BodyNumDoorsID | DriveTypeID | BrakeABSName | CylinderHeadTypeName |
-|----------|------|-------|------|----------|-------------|--------------|---------------|-----------------------------|----------|--------------|---------------|----------------|--------------|-------|----|-----|-----------|-----------|--------------------|------------------|-----------|------------|----------------|-------------|--------------|----------------------|
-| 1 | Nissan | Pathfinder | 1991 | SE | Truck | GAS | 4WD | Automatic | Sport Utility | 4 | 12345 | Naturally Aspirated | 678 | 3.0 | 2960 | 181 | 6 | V | Power | Rack & Pinion | 54321 | 5 | 4 | 4 | 4-Wheel ABS | SOHC |
-
-> The sample data has been anonymized and simplified for demonstration purposes only.
-
-Building upon the ACES/PIES structure, I've integrated our company's specific part number information to generate our comprehensive raw catalog dataset. This augmented dataset is the cornerstone for the final catalog generation.
-
-**Example of Our Augmented Raw Catalog Data (1991 Nissan Pathfinder Example):**
-
-| MAKE | MODEL | BodyType | Year | SUBMODEL | VehicleType | BodyNumDoors | MfrBodyCode | YrMax | COMMENTS | DETAILS | AAIAPARTTERMINOLOGY | AAIAPOSITION | QUANTITY | TSPARTID | TSPARTIDLR | MEXICO | Liter | Cylinders | AspirationName | FuelTypeName | DriveTypeName | Submodel_RockAuto | CanK | Opposite_Side_PARTID |
-|------|-------|----------|------|----------|-------------|--------------|-------------|-------|----------|---------|--------------------|--------------|----------|----------|------------|--------|-------|-----------|----------------|--------------|---------------|-------------------|------|----------------------|
-| Nissan | Pathfinder | Sport Utility | 1991 | SE | Truck | 4 | NULL | 1991 | NULL | NULL | Liftgate Lift Support | NULL | 2 | 611321 | 611321 | YES | 3.0 | 6 | Naturally Aspirated | GAS | 4WD | SE | YES | NULL |
-| Nissan | Pathfinder | Sport Utility | 1991 | SE | Truck | 4 | NULL | 1991 | NULL | NULL | Back Glass Lift Support | Left | 1 | 612921 | 612921 | YES | 3.0 | 6 | Naturally Aspirated | GAS | 4WD | SE | YES | 612917 |
-| Nissan | Pathfinder | Sport Utility | 1991 | SE | Truck | 4 | NULL | 1991 | NULL | NULL | Back Glass Lift Support | Right | 1 | 612917 | 612917 | YES | 3.0 | 6 | Naturally Aspirated | GAS | 4WD | SE | YES | 612921 |
-
-> The sample data has been anonymized and simplified for demonstration purposes only.
-
-This enhanced dataset forms the backbone of the system—supporting precise vehicle fitment logic, structured catalog assembly, and rich Buyers Guide generation.
-
-###  MasterCross Data Overview
-
-In the automotive parts industry—especially for manufacturers and wholesalers—**accurate part identification** is critical. With a wide array of vehicle makes, models, and submodels (often varying by region), ensuring correct part-to-vehicle matching is essential for both operational efficiency and customer satisfaction.
-
-OEM (Original Equipment Manufacturer) numbers serve as the industry’s primary standard for part identification. However, in the aftermarket world, customers often request quotes using **OEM references** or **aftermarket competitor part numbers**. To respond effectively, sellers must maintain a detailed, organized system of cross-references that map each internal part to all available equivalent numbers across the market.
-
-This comprehensive cross-referencing dataset—often referred to as the **Master Cross**—enables:
-
--  Accurate customer quoting  
--  Faster catalog lookup and matching  
--  Seamless integration with third-party buyer systems  
--  Greater catalog integrity and internal data consistency
-
-####  Original Challenge
-
-Prior to this project, the Master Cross was managed **manually** in Microsoft Access. Each new part or cross-reference was entered by hand—resulting in inefficiencies, inconsistencies, and missed opportunities to automate key catalog processes.
-
-To modernize this workflow, I first **unpivoted and normalized** the manually compiled table to extract only the relevant cross-reference information. This laid the foundation for building a clean, scalable structure where each part's crosses—OEM and aftermarket—could be properly grouped, analyzed, and exported.
-
-
-####  Sample Master Cross Dataset (Condensed Example)
-
-| Make  | OEM #        | OEM Cond #   | TSPARTID | TSPARTIDLR | Monroe # | Stabilus # | AC Delco # | Bugiad # | Liftgate # | Meyle # | FCS #   | Delphi # | LesjCond # | Notes |
-|-------|--------------|--------------|----------|------------|----------|------------|------------|----------|-------------|---------|---------|-----------|-------------|-------|
-| TOYOTA | 53450-A9030 | 53450A9030   | 613593   | 613593     | 901393   | 461510     | 4326       | LS10116  | SG329011    | 013610  | 84326   | DMA       |             |       |
-| TOYOTA | 53450-69045 | 5345069045   | 613593   | 613593     | 901393   | 461510     | 4326       | LS10116  | SG329011    | 013610  | 84326   | DMA       |             |       |
-| TOYOTA | 53440-YC040 | 53440YC040   | 613593   | 613593     | 901393   | 461510     | 4326       | LS10116  | SG329011    | 013610  | 84326   | DMA       |             |       |
-| TOYOTA | 53440-YC020 | 53440YC020   | 613593   | 613593     | 901393   | 461510     | 4326       | LS10116  | SG129032    | 013610  | 84326   | DMA       |             |       |
-
->  *Note: This table has been simplified and pseudonymized to demonstrate the schema and logic only. The original dataset contains tens of thousands of crosses and brand mappings across over 15,000+ unique SKUs.*
-
-
-By automating and structuring the Master Cross using SQL, I enabled my company to:
-
--  Eliminate repetitive manual entry  
--  Support scalable cross-reference expansion  
--  Export unified catalogs for clients, quotes, and internal systems
-
-This Master Cross now functions as a **core component of our catalog logic**, linking each internal TSPARTID to a complete set of competitor and OEM numbers used across the industry.
+**In summary:**  
+This unified, structured dataset underpins the catalog’s accuracy, automation, and flexibility—delivering precise vehicle-part mapping, robust Buyers Guide assembly, and fast, reliable integration with customer and partner systems.
 
 --- 
 
@@ -143,7 +100,7 @@ To build a complete and distributable aftermarket catalog, I designed a three-st
 
 ### Step 1: Build the Buyers Guide from Application Fitment Data
 
-#### 🏗 Buyers Guide View: `vw_TUF_BuyersGuide_All_woCross`
+####  Buyers Guide View: `vw_TUF_BuyersGuide_All_woCross`
 
 This SQL script defines a view that assembles a **comprehensive Buyers Guide** table for your catalog. Each row summarizes the full application, terminology, and essential notes for a unique part number (`TSPARTID`), drawing from your ACES-style raw fitment data.
 
@@ -672,3 +629,13 @@ BEGIN
 END
 ```
 This stored procedure drops and recreates the TUF_BuyersGuide table by joining up-to-date fitment data with cross-reference numbers. Running it ensures your Buyers Guide always reflects the latest catalog changes—fully automated and no manual updates required.
+
+## Usage & Maintenance
+
+- **Routine Updates:**  
+  - When new parts are introduced or catalog updates are needed, add/update the raw data in `TUF_CATALOG_AAIA` and cross-reference tables.
+  - Run the `sp_TUF_Create_BuyersGuide` stored procedure to instantly rebuild the Buyers Guide for internal or external use.
+
+- **Customization:**  
+  - To support additional cross brands, simply add new columns to the cross-reference logic and update the views accordingly.
+  - For further field mapping or format changes, modify the relevant view scripts.
