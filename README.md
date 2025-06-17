@@ -522,7 +522,93 @@ Instead of one wide row with 40+ cross columns, you get **one row per part per c
 
 This view transforms your legacy, manual cross-reference table into a **clean, query-ready structure**—removing redundancy, supporting automation, and allowing direct joins to Buyers Guide application data for a fully enriched catalog.
 
-### Step 2.2 
+### Step 2.2 Cross Reference Condensing & Re-Pivoting
+
+After normalizing the cross-reference data into a long, unpivoted format, the next challenge was to create a clean, consolidated, and export-friendly matrix of competitor and OEM numbers for every part. The legacy data contained many variations and duplicates due to inconsistent manual entry—sometimes the same cross number would appear with different punctuation, spacing, or casing. To ensure a professional and reliable catalog, I built a process that condenses, deduplicates, and pivots these references into a wide-format table with perfectly normalized cross numbers for each brand. This fully-automated transformation replaces manual clean-up and guarantees consistency across the catalog.
+
+**SCRIPT "vw_TUF_Pivoted_IntMaster_Cond_Aggregated"**
+
+```sql
+ALTER VIEW [dbo].[vw_TUF_Pivoted_IntMaster_Cond_Aggregated] AS
+WITH UnpivotedCondensed AS (
+    SELECT DISTINCT
+        TSPARTID,
+        CrossName,
+        UPPER(REPLACE(REPLACE(REPLACE(CrossingNumber, '-', ''), ' ', ''), '.', '')) AS CrossingNumberCondensed
+    FROM vw_TUF_Unpivoted_IntMaster_wMake
+),
+UnpivotedCondensedAgg AS (
+    SELECT
+        TSPARTID,
+        CrossName,
+        STRING_AGG(CrossingNumberCondensed, '; ') AS CrossNumberCondensedAgg
+    FROM UnpivotedCondensed
+    GROUP BY TSPARTID, CrossName
+)
+SELECT *
+FROM UnpivotedCondensedAgg
+PIVOT (
+    MAX(CrossNumberCondensedAgg)
+    FOR CrossName IN (
+        [OEM], [SA], [Sachs], [Mightylift], [FCS], [Stabilus], [Martas], [URO], [TRW],
+        [Monroe], [Napa], [QH], [Helmer], [Piston], [Kilen], [Optimal], [Meyle], [MagMar],
+        [Ferron], [Febi], [Lip], [AC_Delco], [Decar], [Liftgate], [Bugiad], [Triscan],
+        [Les], [FA], [Delphi], [Hans_Pries], [Vierol], [Mapco], [Destek], [Cofap],
+        [Air_Kraft], [Arnott], [MonroeEUR], [AMS], [Johns], [Klaxcar], [SYD], [DMA],
+        [Auger], [Sampa], [Sem_Plastik], [Stellox], [Orex], [DT_Spare_Parts], [Veka]
+    )
+) AS PivotedResult;
+```
+
+This view takes the **normalized cross-reference data** (from `vw_TUF_Unpivoted_IntMaster_wMake`) and processes it to provide a **condensed, pivoted matrix** of all competitor and OEM numbers per part. The result is a highly usable, duplicate-free table that is easy to join or export for catalog use.
+
+**What This View Does**
+
+- **Condenses cross numbers:**  
+  Removes dashes, spaces, and periods from cross numbers and converts them to uppercase for maximum consistency and deduplication (e.g., `"53-450.A9030"` → `"53450A9030"`).
+- **Aggregates duplicates:**  
+  Groups any repeated cross numbers into a single, semicolon-separated list for each brand per part.
+- **Pivots back to wide format:**  
+  The view outputs one row per part number (`TSPARTID`), with each cross-reference brand as its own column (e.g., `[OEM]`, `[Monroe]`, `[Sachs]`, etc.). This makes it convenient for export, analysis, or reporting.
+
+---
+
+#### **How the View Works — Step by Step**
+
+##### 1. `UnpivotedCondensed`
+- Pulls from the previously unpivoted, long-format cross-reference view (`vw_TUF_Unpivoted_IntMaster_wMake`).
+- For each row, **condenses** the cross number:
+  - Removes dashes, spaces, and periods.
+  - Converts all characters to uppercase.
+  - This normalizes variations in how cross numbers may be entered or formatted.
+
+##### 2. `UnpivotedCondensedAgg`
+- Groups by both `TSPARTID` and `CrossName` (brand).
+- Aggregates all condensed cross numbers for that brand into a **semicolon-separated list** (using `STRING_AGG`).
+- Ensures there are no duplicate cross numbers per part/brand.
+
+##### 3. **PIVOT**
+- Re-pivots the data, producing a **wide table**:
+  - Each `TSPARTID` is a row.
+  - Each cross brand (e.g., `[OEM]`, `[Monroe]`, `[Stabilus]`, etc.) is a column.
+  - Cell values are the semicolon-separated, deduplicated cross numbers for that part and brand (or NULL if no cross).
 
 
+#### **Sample Output**
 
+| TSPARTID | OEM            | Monroe       | Sachs    | Stabilus  | ... |
+|----------|----------------|-------------|----------|-----------|-----|
+| 613593   | 53450A9030     | 901393      | 4326     | 461510    | ... |
+| 612350   | 52088258;52088 | 900520      | 4242     | 469200    | ... |
+
+
+#### **Benefits**
+
+- **Data Consistency:** All cross numbers follow a single, normalized format.
+- **Deduplication:** Repeated or variant entries are collapsed into one.
+- **Query & Export Ready:** Data is in a familiar matrix (wide) layout, easy for lookup, reporting, or catalog publishing.
+- **Automated:** This process is repeatable—no more manual Excel work!
+
+
+**In summary:**  
+This view delivers a clean, deduplicated, pivoted matrix of cross-references for every part, forming the foundation for the final, fully enriched Buyers Guide export.
