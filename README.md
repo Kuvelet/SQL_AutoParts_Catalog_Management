@@ -1,4 +1,20 @@
-# SQL_AutoParts_Catalog_Management
+# SQL-Based ACES/PIES Catalog Management System
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Tech Stack](#tech-stack)
+- [Dataset Description](#dataset-description)
+    - [Data Sources](#data-sources)
+    - [Sample Data](#sample-data)
+- [Buyers Guide Construction & Cross Integration](#buyers-guide-construction--cross-integration)
+    - [Step 1: Build the Buyers Guide from Application Fitment Data](#step-1-build-the-buyers-guide-from-application-fitment-data)
+    - [Step 2.1: Cross Reference Integration – Normalizing the Master Cross](#step-21-cross-reference-integration-normalizing-the-master-cross)
+    - [Step 2.2: Cross Reference Condensing & Re-Pivoting](#step-22-cross-reference-condensing--re-pivoting)
+    - [Step 3: Automated Buyers Guide Refresh (Stored Procedure)](#step-3-automated-buyers-guide-refresh-stored-procedure)
+- [Master Cross Construction](#master-cross-construction)
+- [Usage & Maintenance](#usage--maintenance)
+
 
 ## Project Overview
 
@@ -628,40 +644,58 @@ To transform the messy, manually-maintained cross-reference data into a robust, 
 
 To generate the final, wide-format Master Cross:
 
-- 1. Ranking and Filtering:
-Using a CTE (RankedCrosses), I assign a row number to each cross-reference per TSPARTID and brand, ensuring each cross is uniquely ranked and that only non-null cross numbers are included.
+- 1) Ranking and Filtering:
+Using a CTE (RankedCrosses), I assign a row number to each cross-reference per TSPARTID and brand. This ensures each cross is uniquely ranked within its group and that only non-null cross numbers are included. The row number is critical for the subsequent pivot, as it helps select a unique value for each brand and part number, minimizing row duplication.
 
-- 2. Pivoting to Wide Format:
-I then use the SQL PIVOT function to convert the long-format data into a single row per part (TSPARTID), with each competitor or OEM brand (e.g., OEM, Monroe, Stabilus, etc.) as its own column. The value in each column is the relevant cross number for that brand and part.
+- 2) Pivoting to Wide Format:
+I then use the SQL PIVOT function to convert the normalized, long-format data into a single row per part (TSPARTID). Each competitor or OEM brand (e.g., OEM, Monroe, Stabilus, etc.) becomes its own column in the output. The value in each column is the relevant cross number for that brand and part, providing the “wide” format needed for quoting, exports, and catalog integration.
 
-- 3. Condensing and Normalizing OEM Numbers:
-To further standardize the data, OEM numbers are condensed—removing dashes, spaces, and periods, and converting to uppercase—ensuring cross-references are reliable and easy to match across systems.
+- 3) Condensing and Normalizing OEM Numbers:
+To further standardize the data, OEM numbers are condensed by removing dashes, spaces, and periods, and converting everything to uppercase. This normalization ensures that cross-references are reliable and consistent, making matching and integration with external systems more accurate.
 
 ```sql
-WITH RankedCrosses AS (
-    SELECT 
-        TSPARTID,
-        CrossName,
-        CrossingNumber,
-        ROW_NUMBER() OVER (PARTITION BY TSPARTID, CrossName ORDER BY CrossingNumber) AS rn
-    FROM vw_TUF_Unpivoted_IntMaster_wMake
-    WHERE CrossingNumber IS NOT NULL
-)
-SELECT *,
-UPPER(REPLACE(REPLACE(REPLACE(OEM, '-', ''), ' ', ''), '.', '')) AS OEM_Condensed
-FROM RankedCrosses
-PIVOT (
-    MAX(CrossingNumber)
-    FOR CrossName IN (
-        [OEM], [SA], [Sachs], [MightyLift], [FCS], [Stabilus],
-        [AC_Delco], [AMS], [Auger], [Bugiad], [Cofap], [Decar], [Delphi], [Destek], [DMA],
-        [DT_Spare_Parts], [FA], [Febi], [Ferron], [Hans_Pries], [Helmer], [Johns], [Kilen],
-        [Klaxcar], [Les], [Liftgate], [Lip], [MagMar], [Mapco], [Martas], [Meyle], [Monroe],
-        [MonroeEUR], [Napa], [Optimal], [Orex], [Piston], [QH], [Sampa], [Sem_Plastik],
-        [Stellox], [SYD], [Triscan], [TRW], [URO], [Veka], [Vierol]
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE sp_TUF_Create_MasterCross
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Drop the MasterCross table if it already exists
+    IF OBJECT_ID('dbo.TUF_MasterCross', 'U') IS NOT NULL
+        DROP TABLE dbo.TUF_MasterCross;
+
+    -- Create the MasterCross table with fresh data
+    WITH RankedCrosses AS (
+        SELECT 
+            TSPARTID,
+            CrossName,
+            CrossingNumber,
+            ROW_NUMBER() OVER (PARTITION BY TSPARTID, CrossName ORDER BY CrossingNumber) AS rn
+        FROM vw_TUF_Unpivoted_IntMaster_wMake
+        WHERE CrossingNumber IS NOT NULL
     )
-) AS Pivoted
-ORDER BY TSPARTID, rn;
+    SELECT *,
+        UPPER(REPLACE(REPLACE(REPLACE(OEM, '-', ''), ' ', ''), '.', '')) AS OEM_Condensed
+    INTO dbo.TUF_MasterCross
+    FROM RankedCrosses
+    PIVOT (
+        MAX(CrossingNumber)
+        FOR CrossName IN (
+            [OEM], [SA], [Sachs], [MightyLift], [FCS], [Stabilus],
+            [AC_Delco], [AMS], [Auger], [Bugiad], [Cofap], [Decar], [Delphi], [Destek], [DMA],
+            [DT_Spare_Parts], [FA], [Febi], [Ferron], [Hans_Pries], [Helmer], [Johns], [Kilen],
+            [Klaxcar], [Les], [Liftgate], [Lip], [MagMar], [Mapco], [Martas], [Meyle], [Monroe],
+            [MonroeEUR], [Napa], [Optimal], [Orex], [Piston], [QH], [Sampa], [Sem_Plastik],
+            [Stellox], [SYD], [Triscan], [TRW], [URO], [Veka], [Vierol]
+        )
+    ) AS Pivoted
+    ORDER BY TSPARTID, rn;
+END
+GO
 ```
 This process produces a fully normalized, pivoted Master Cross table: every part appears on a single row, with one column per brand, making it ideal for catalog exports, fast lookups, and joining directly with the Buyers Guide for a complete, enriched catalog solution.
 
@@ -670,9 +704,13 @@ By leveraging the same normalized view (vw_TUF_Unpivoted_IntMaster_wMake) in bot
 ## Usage & Maintenance
 
 - **Routine Updates:**  
-  - When new parts are introduced or catalog updates are needed, add/update the raw data in `TUF_CATALOG_AAIA` and cross-reference tables.
-  - Run the `sp_TUF_Create_BuyersGuide` stored procedure to instantly rebuild the Buyers Guide for internal or external use.
+  - Add or update raw fitment data in `TUF_CATALOG_AAIA` and cross-reference data in the appropriate tables as new parts are introduced or catalog changes occur.
+  - Execute the `sp_TUF_Create_BuyersGuide` and `sp_TUF_Create_MasterCross` stored procedures to automatically refresh the Buyers Guide and Master Cross tables, ensuring all downstream exports and integrations are up to date.
 
-- **Customization:**  
-  - To support additional cross brands, simply add new columns to the cross-reference logic and update the views accordingly.
-  - For further field mapping or format changes, modify the relevant view scripts.
+- **Customization & Expansion:**  
+  - To include new cross brands, extend the cross-reference columns and update the pivot logic in the relevant views and stored procedures.
+  - For changes to field mappings or output formats, adjust the corresponding view definitions and stored procedure logic to meet new requirements.
+
+- **General Maintenance:**  
+  - Periodically review the catalog structure and cross-reference integrity to ensure ongoing accuracy and consistency.
+  - Document any schema changes or process updates to maintain a reliable, scalable workflow.
