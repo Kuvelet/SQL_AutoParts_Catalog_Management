@@ -373,7 +373,7 @@ LEFT JOIN AggregatedTerminology
 ##### 5. `AggregatedTerminology`
 - Lists AAIA part terminology (e.g., “Lift Support”), position (“Left; Right”), and quantity needed.
 
-##### **Final SELECT**
+##### 6. **Final SELECT**
 
 - Joins all the above CTEs using `TSPARTID` as the key.
 - Each row = one part, with full application and descriptive metadata.
@@ -392,10 +392,21 @@ LEFT JOIN AggregatedTerminology
 | Notes            | Combined notes, codes, comments                         |
 | QuantityNeeded   | Quantity required per vehicle                           |
 
-**Summary:**  
-This view delivers a ready-to-use, highly readable Buyers Guide output for each part, optimized for further enrichment with cross-reference data.
+
+#### **Resulting Table**
+
+| TSPARTID | Application                                                                                                                                                                  | MinYear | MaxYear | BodyType                                                                                  | PartTerminology        | Position | Notes             | QuantityNeeded |
+|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|---------|-------------------------------------------------------------------------------------------|------------------------|----------|-------------------|---------------|
+| 611049   | Ford: Taurus (1996–1999)  / Mercury: Sable (1996–2005)                                                                                | 1996    | 2005    | 4 Door Wagon                                                                              | Liftgate Lift Support  |          | E54D; ME54D       | 2             |
+| 611050   | Chevrolet: Silverado 2500 HD (2020–2024); Silverado 3500 HD (2020–2024)                                                               | 2020    | 2024    | 2 Door Cab & Chassis, 2 Door Standard Cab Pickup, 4 Door Cab & Chassis, 4 Door Crew Cab Pickup, 4 Door Extended Cab Pickup | Hood Lift Support      |          | Gas Engine        | 2             |
+| 611053   | Cadillac: Eldorado (1992–2002); Seville (1992–1996)                                                                                   | 1992    | 2002    | 2 Door Coupe (1992–2002), 2 Door Sedan (1995–1997), 4 Door Sedan (1992–1996)              | Hood Lift Support      |          |                   | 2             |
+| 611054   | Audi: Q2 (2017–2022); Q2 Quattro (2018–2022)                                                                                          | 2017    | 2022    | 4 Door Sport Utility                                                                      | Liftgate Lift Support  |          | GAB \|\| w/ Manual| 2             |
+| 611055   | Mercedes-Benz: CLS-Class (2008–2011)                                                                                                  | 2008    | 2011    | 4 Door Coupe                                                                              | Trunk Lid Lift Support |          | CL203             | 2             |
+| 611056   | Volkswagen: Arteon (2017–2022)                                                                                                        | 2017    | 2022    | 4 Door Hatchback                                                                          | Liftgate Lift Support  |          | w/o Power         | 2             |
+| 611057   | Chrysler: Caravan (1984–1990); Town & Country (1984–1990)  / Dodge: Caravan (1984–1990); Grand Caravan (1984–1990)  / Plymouth: Grand Voyager (1987–1990); Voyager (1984–1990) | 1984    | 1990    | 3 Door Mini Passenger Van, 4 Door Mini Passenger Van                                      | Liftgate Lift Support  |          |                   | 2             |
 
 
+---
 
 ### Step 2.1 Cross Reference Integration: Normalizing the Master Cross
 
