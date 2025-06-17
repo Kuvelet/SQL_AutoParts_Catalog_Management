@@ -139,7 +139,7 @@ This Master Cross now functions as a **core component of our catalog logic**, li
 
 ## Buyers Guide Construction & Cross Integration
 
-To build a complete and distributable aftermarket catalog, I designed a two-stage process:
+To build a complete and distributable aftermarket catalog, I designed a three-stage process:
 
 ### Step 1: Build the Buyers Guide from Application Fitment Data
 
@@ -612,3 +612,63 @@ This view takes the **normalized cross-reference data** (from `vw_TUF_Unpivoted_
 
 **In summary:**  
 This view delivers a clean, deduplicated, pivoted matrix of cross-references for every part, forming the foundation for the final, fully enriched Buyers Guide export.
+
+### Step 3: Automated Buyers Guide Refresh (Stored Procedure)
+
+Once all underlying views are in place, I created a stored procedure to fully automate the generation and maintenance of the Buyers Guide table. This stored procedure—`sp_TUF_Create_BuyersGuide`—dynamically rebuilds the Buyers Guide every time it is run.
+
+Whenever parts are added, modified, or removed in the `TUF_CATALOG_AAIA` master table, I simply run this stored procedure. It automatically drops and recreates the `TUF_BuyersGuide` table, combining the latest application fitment data with the most up-to-date cross-reference information from the supporting views.
+
+**How it works:**
+
+- **Drop & Rebuild:**  
+  The procedure deletes the existing Buyers Guide table (if present) and creates a fresh version, eliminating any risk of outdated or duplicate data.
+
+- **Seamless Integration:**  
+  Joins the comprehensive application data from `vw_TUF_BuyersGuide_All_woCross` with the normalized cross-reference matrix from `vw_TUF_Pivoted_IntMaster_Cond_Aggregated`.
+
+- **Always Current:**  
+  Every change to the core catalog is reflected instantly—one command refreshes the entire Buyers Guide for internal teams, exports, and customer-facing deliverables.
+
+- **No Manual Intervention:**  
+  Catalog maintenance becomes a one-step, automated process—saving time and ensuring accuracy at every update.
+
+**SCRIPT sp_TUF_Create_BuyersGuide**
+
+```sql
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[sp_TUF_Create_BuyersGuide]
+AS
+BEGIN
+
+    -- Check if table exists and drop it if necessary
+    IF OBJECT_ID('dbo.TUF_BuyersGuide', 'U') IS NOT NULL
+        DROP TABLE dbo.TUF_BuyersGuide;
+
+    -- Create new TS_BuyersGuide table
+    SELECT
+        b.TSPARTID,
+        b.Application,
+        b.MinYear,
+        b.BodyType,
+        b.PartTerminology,
+        b.Position,
+        b.Notes,
+        b.QuantityNeeded,
+        p.OEM AS OEM_Cond,
+        p.SA,
+        p.Sachs,
+        p.Mightylift,
+        p.FCS,
+        p.Stabilus
+    INTO dbo.TUF_BuyersGuide
+    FROM vw_TUF_BuyersGuide_All_woCross AS b
+    LEFT JOIN vw_TUF_Pivoted_IntMaster_Cond_Aggregated AS p
+        ON b.TSPARTID = p.TSPARTID;
+
+END
+```
+This stored procedure drops and recreates the TUF_BuyersGuide table by joining up-to-date fitment data with cross-reference numbers. Running it ensures your Buyers Guide always reflects the latest catalog changes—fully automated and no manual updates required.
