@@ -159,7 +159,7 @@ This SQL script defines a view that assembles a **comprehensive Buyers Guide** t
 The result:  
 A single, well-structured table providing every key Buyers Guide detail needed for internal analysis, catalog exports, or sharing with partners—**before joining to any cross-reference data**.
 
-**SCRIPT**
+**SCRIPT "vw_TUF_BuyersGuide_All_woCross"**
 
 ```sql
 CREATE VIEW vw_TUF_BuyersGuide_All_woCross AS
@@ -264,7 +264,6 @@ AggregatedNotes AS (
                 TSPARTID, 
                 MfrBodyCode
             FROM TUF_CATALOG_AAIA
-            WHERE MfrBodyCode IS NOT NULL
         ) AS x
         GROUP BY TSPARTID
     ) AS MBC
@@ -294,10 +293,6 @@ AggregatedNotes AS (
         ) AS z
         GROUP BY TSPARTID
     ) AS D ON MBC.TSPARTID = D.TSPARTID
-    WHERE 
-        C.Cmnts IS NULL AND
-        MBC.MfrBodyCode IS NOT NULL AND
-        D.Dtls IS NOT NULL
 ),
 
 AggregatedTerminology AS (
@@ -399,6 +394,8 @@ LEFT JOIN AggregatedTerminology
 
 **Summary:**  
 This view delivers a ready-to-use, highly readable Buyers Guide output for each part, optimized for further enrichment with cross-reference data.
+
+
 
 ### Step 2.1 Cross Reference Integration: Normalizing the Master Cross
 
