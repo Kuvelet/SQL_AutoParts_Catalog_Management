@@ -70,29 +70,6 @@ Combining AAIA and company-specific data provides both external compatibility an
 
 ---
 
-### Master Cross Reference Data
-
-To enable accurate quoting and rapid lookups, the catalog also includes a **comprehensive cross-reference (“Master Cross”)** table mapping each internal part number (TSPARTID) to all related OEM and aftermarket competitor numbers. This used to be maintained manually and was prone to errors and inefficiency.
-
-**Automating and normalizing this data with SQL provides:**
-- Accurate customer quoting
-- Faster catalog lookup and integration
-- Scalability as more crosses and brands are added
-- Reliable, unified exports for clients and partners
-
-*Condensed Master Cross Sample:*
-
-| Make   | OEM #        | OEM Cond #   | TSPARTID | Monroe # | Stabilus # | AC Delco # | Bugiad # | Meyle # | FCS # | Notes |
-|--------|--------------|--------------|----------|----------|------------|------------|----------|---------|-------|-------|
-| TOYOTA | 53450-A9030  | 53450A9030   | 613593   | 901393   | 461510     | 4326       | LS10116  | 013610  | 84326 |       |
-| TOYOTA | 53450-69045  | 5345069045   | 613593   | 901393   | 461510     | 4326       | LS10116  | 013610  | 84326 |       |
-
----
-
-**In summary:**  
-This unified, structured dataset underpins the catalog’s accuracy, automation, and flexibility—delivering precise vehicle-part mapping, robust Buyers Guide assembly, and fast, reliable integration with customer and partner systems.
-
---- 
 
 ## Buyers Guide Construction & Cross Integration
 
@@ -629,6 +606,66 @@ BEGIN
 END
 ```
 This stored procedure drops and recreates the TUF_BuyersGuide table by joining up-to-date fitment data with cross-reference numbers. Running it ensures your Buyers Guide always reflects the latest catalog changes—fully automated and no manual updates required.
+
+## Master Cross Construction
+
+In the automotive parts industry, customers and partners often identify parts using a variety of references—OEM numbers, competitor brands, or distributor part numbers. To deliver fast, accurate quotes and seamless catalog lookups, you need a single, unified table that maps each of your internal part numbers (TSPARTID) to every relevant OEM and aftermarket cross number across all brands.
+
+While a normalized, "long" format like vw_TUF_Unpivoted_IntMaster_wMake is valuable for analysis and maintenance—listing every cross-reference on its own row—this structure is not practical for most business workflows. Sales teams, customers, and catalog systems typically require a "wide" format, where each TSPARTID has a single row and each brand’s cross number appears in its own column. This makes it much easier to join with Buyers Guide data, generate exports, filter or search for crosses, and support automated quoting or integration with external systems.
+
+By building a pivoted Master Cross view, you ensure:
+
+All relevant cross numbers for each part are accessible and deduplicated in one place
+
+Catalog and quoting processes are efficient, accurate, and scalable
+
+Downstream teams and systems receive the data in the format they expect, minimizing manual work and errors
+
+In short, the Master Cross transforms a complex web of references into a reliable, business-ready dataset that drives both operational efficiency and customer satisfaction.
+
+
+To transform the messy, manually-maintained cross-reference data into a robust, business-ready “Master Cross,” I first normalized the legacy table into a clean, long-format view—vw_TUF_Unpivoted_IntMaster_wMake. This view lists every cross-reference for each part as a separate row, recording the TSPARTID, cross brand (CrossName), and the specific cross number (CrossingNumber). The same normalized view also forms the backbone for Buyers Guide generation, ensuring consistency and eliminating duplication at every step.
+
+To generate the final, wide-format Master Cross:
+
+- 1. Ranking and Filtering:
+Using a CTE (RankedCrosses), I assign a row number to each cross-reference per TSPARTID and brand, ensuring each cross is uniquely ranked and that only non-null cross numbers are included.
+
+- 2. Pivoting to Wide Format:
+I then use the SQL PIVOT function to convert the long-format data into a single row per part (TSPARTID), with each competitor or OEM brand (e.g., OEM, Monroe, Stabilus, etc.) as its own column. The value in each column is the relevant cross number for that brand and part.
+
+- 3. Condensing and Normalizing OEM Numbers:
+To further standardize the data, OEM numbers are condensed—removing dashes, spaces, and periods, and converting to uppercase—ensuring cross-references are reliable and easy to match across systems.
+
+```sql
+WITH RankedCrosses AS (
+    SELECT 
+        TSPARTID,
+        CrossName,
+        CrossingNumber,
+        ROW_NUMBER() OVER (PARTITION BY TSPARTID, CrossName ORDER BY CrossingNumber) AS rn
+    FROM vw_TUF_Unpivoted_IntMaster_wMake
+    WHERE CrossingNumber IS NOT NULL
+)
+SELECT *,
+UPPER(REPLACE(REPLACE(REPLACE(OEM, '-', ''), ' ', ''), '.', '')) AS OEM_Condensed
+FROM RankedCrosses
+PIVOT (
+    MAX(CrossingNumber)
+    FOR CrossName IN (
+        [OEM], [SA], [Sachs], [MightyLift], [FCS], [Stabilus],
+        [AC_Delco], [AMS], [Auger], [Bugiad], [Cofap], [Decar], [Delphi], [Destek], [DMA],
+        [DT_Spare_Parts], [FA], [Febi], [Ferron], [Hans_Pries], [Helmer], [Johns], [Kilen],
+        [Klaxcar], [Les], [Liftgate], [Lip], [MagMar], [Mapco], [Martas], [Meyle], [Monroe],
+        [MonroeEUR], [Napa], [Optimal], [Orex], [Piston], [QH], [Sampa], [Sem_Plastik],
+        [Stellox], [SYD], [Triscan], [TRW], [URO], [Veka], [Vierol]
+    )
+) AS Pivoted
+ORDER BY TSPARTID, rn;
+```
+This process produces a fully normalized, pivoted Master Cross table: every part appears on a single row, with one column per brand, making it ideal for catalog exports, fast lookups, and joining directly with the Buyers Guide for a complete, enriched catalog solution.
+
+By leveraging the same normalized view (vw_TUF_Unpivoted_IntMaster_wMake) in both the Master Cross and Buyers Guide, I ensure total data integrity, easy maintenance, and maximum efficiency throughout the catalog pipeline.
 
 ## Usage & Maintenance
 
